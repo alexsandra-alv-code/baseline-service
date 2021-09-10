@@ -26,6 +26,4 @@ public class InitialInvestmentDto {
 	/** The investment years. */
 	private Integer investmentYears;
 	
-	
-	
 }

@@ -3,13 +3,60 @@ package com.tis.mx.application.service.impl;
 import com.tis.mx.application.dto.InitialInvestmentDto;
 import com.tis.mx.application.dto.InvestmentYieldDto;
 import com.tis.mx.application.service.CompoundInterestCalculator;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class CompoundInterestCalculatorImpl implements CompoundInterestCalculator {
 
+	/**
+	 * Creates the revenue grid.
+	 *
+	 * @param initialInvestmentDto the initial investment dto
+	 * @return the list
+	 */
 	@Override
-	public List<InvestmentYieldDto> createRevenueGrid(InitialInvestmentDto initialInvestment) {
-		return null;
+	public List<InvestmentYieldDto> createRevenueGrid(InitialInvestmentDto initialInvestmentDto) {
+		List<InvestmentYieldDto> investmentYieldDtos = new ArrayList<>();
+		List<InvestmentYieldDto> aux = Stream.generate(InvestmentYieldDto::new)
+				.limit(initialInvestmentDto.getInvestmentYears()).collect(Collectors.toList());
+		AtomicInteger year = new AtomicInteger(1);
+		aux.stream().map(investment -> {
+			if (year.get() == 1) {
+				return new InvestmentYieldDto(year.getAndIncrement(), initialInvestmentDto.getInitialInvestment(),
+						initialInvestmentDto.getYearlyInput(),
+						(initialInvestmentDto.getInitialInvestment() + initialInvestmentDto.getYearlyInput())
+								* (initialInvestmentDto.getInvestmentYield().doubleValue() / 100.00),
+
+						initialInvestmentDto.getInitialInvestment() + initialInvestmentDto.getYearlyInput()
+								+ ((initialInvestmentDto.getInitialInvestment() + initialInvestmentDto.getYearlyInput())
+										* (initialInvestmentDto.getInvestmentYield().doubleValue() / 100.00)));
+			} else {
+				return new InvestmentYieldDto(year.getAndIncrement(),
+
+						investmentYieldDtos.get(investmentYieldDtos.size() - 1).getFinalBalance(),
+
+						investmentYieldDtos.get(investmentYieldDtos.size() - 1).getYearlyInput()
+								* (1 + (initialInvestmentDto.getYearlyInputIncrement().doubleValue() / 100.00)),
+
+						(investmentYieldDtos.get(investmentYieldDtos.size() - 1).getFinalBalance()
+								+ (investmentYieldDtos.get(investmentYieldDtos.size() - 1).getYearlyInput()
+										* (1 + (initialInvestmentDto.getInvestmentYield().doubleValue() / 100d))))
+								* (initialInvestmentDto.getInvestmentYield() / 100f),
+
+						(investmentYieldDtos.get(investmentYieldDtos.size() - 1).getFinalBalance())
+								+ (investmentYieldDtos.get(investmentYieldDtos.size() - 1).getYearlyInput()
+										* (1 + (initialInvestmentDto.getYearlyInputIncrement().doubleValue() / 100.00)))
+								+ ((investmentYieldDtos.get(investmentYieldDtos.size() - 1).getFinalBalance()
+										+ (investmentYieldDtos.get(investmentYieldDtos.size() - 1).getYearlyInput() * (1
+												+ (initialInvestmentDto.getInvestmentYield().doubleValue() / 100d))))
+										* (initialInvestmentDto.getInvestmentYield() / 100f)));
+			}
+		}).forEachOrdered(investmentYieldDtos::add);
+		return investmentYieldDtos;
 	}
 
 	@Override
